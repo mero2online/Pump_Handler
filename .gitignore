@@ -1,0 +1,8 @@
+__pycache__
+build
+dist
+commands
+pump.spec
+.vscode
+.DS_Store
+Pipfile.lock
