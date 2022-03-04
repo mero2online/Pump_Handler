@@ -141,47 +141,54 @@ getWellNumber()
 
 # Buttons
 
-all_wells_label = Label(app, text=allWells, pady=20)
+all_wells_label = Label(app, text=allWells,  background='#b66e10', pady=20)
 all_wells_label.grid(row=0, column=2)
 
-well_label = Label(app, text='Logging Well Number', pady=20, padx=20)
+well_label = Label(app, text='Logging Well Number',
+                   background='#10b6a8', pady=20, padx=20)
 well_label.grid(row=1, column=0)
-well_no_label = Label(app, text=wellNumber, pady=20, padx=20, width=5)
+well_no_label = Label(app, text=wellNumber,
+                      background='#b66e10', pady=20, padx=20, width=5)
 well_no_label.grid(row=1, column=1)
 
-pump_label = Label(app, text='Pump Number', pady=20, padx=20)
+pump_label = Label(app, text='Pump Number',
+                   background='#10b6a8', pady=20, padx=20)
 pump_label.grid(row=2, column=0)
 pump_one_checked = IntVar()
-c1 = Checkbutton(app, text="Pump 1", variable=pump_one_checked,  pady=20, padx=20,
+c1 = Checkbutton(app, text="Pump 1", variable=pump_one_checked, background='#e938bd', pady=20, padx=20, borderwidth=2, relief="ridge",
                  command=change_check_value)
 c1.grid(row=2, column=1)
 pump_two_checked = IntVar()
-c2 = Checkbutton(app, text="Pump 2", variable=pump_two_checked,  pady=20, padx=20,
+c2 = Checkbutton(app, text="Pump 2", variable=pump_two_checked, background='#b6108d', pady=20, padx=20, borderwidth=2, relief="ridge",
                  command=change_check_value)
 c2.grid(row=2, column=2)
 pump_three_checked = IntVar()
-c3 = Checkbutton(app, text="Pump 3", variable=pump_three_checked,  pady=20, padx=20,
+c3 = Checkbutton(app, text="Pump 3", variable=pump_three_checked, background='#e938bd', pady=20, padx=20, borderwidth=2, relief="ridge",
                  command=change_check_value)
 c3.grid(row=2, column=3)
 
-pump_value_label = Label(app, text='Pump Value', pady=20, padx=20)
+pump_value_label = Label(app, text='Pump Value',
+                         background='#10b6a8', pady=20, padx=20)
 pump_value_label.grid(row=3, column=0)
 
 pump_one_value = StringVar()
 pump_two_value = StringVar()
 pump_three_value = StringVar()
-pump_one_value_entry = Entry(app, textvariable=pump_one_value)
+pump_one_value_entry = Entry(app, textvariable=pump_one_value,
+                             background='#e938bd', borderwidth=2, relief="ridge")
 pump_one_value_entry.grid(row=3, column=1)
-pump_two_value_entry = Entry(app, textvariable=pump_two_value)
+pump_two_value_entry = Entry(app, textvariable=pump_two_value,
+                             background='#b6108d', borderwidth=2, relief="ridge")
 pump_two_value_entry.grid(row=3, column=2)
-pump_three_value_entry = Entry(app, textvariable=pump_three_value)
+pump_three_value_entry = Entry(
+    app, textvariable=pump_three_value, background='#e938bd', borderwidth=2, relief="ridge")
 pump_three_value_entry.grid(row=3, column=3)
 
 run_command_btn = Button(app, text='Start Pump',
                          background='#A3E4DB', command=startpump)
 run_command_btn.grid(row=4, column=1, pady=20)
 
-Button(app, text="Stop Pump",
+Button(app, text="Stop Pump", background='#e00707',
        command=stoppump).grid(row=4, column=3, pady=20)
 
 setEntryDisabled()
