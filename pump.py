@@ -48,12 +48,19 @@ def change_check_value():
 
 def getPumpsValues():
     values = []
-    if pump_one_checked.get() == 1 and pump_one_value.get() != '':
-        values.append(f'-dSPM1:{pump_one_value.get()} -dSTK1:1')
-    if pump_two_checked.get() == 1 and pump_two_value.get() != '':
-        values.append(f'-dSPM2:{pump_two_value.get()} -dSTK2:1')
-    if pump_three_checked.get() == 1 and pump_three_value.get() != '':
-        values.append(f'-dSPM3:{pump_three_value.get()} -dSTK3:1')
+    p_one_v = pump_one_value.get()
+    p_two_v = pump_two_value.get()
+    p_three_v = pump_three_value.get()
+
+    if pump_one_checked.get() == 1 and p_one_v != '':
+        values.append(
+            f'-dSPM1:{p_one_v} -dSTK1:{"{:.2f}".format(int(p_one_v)/60)}')
+    if pump_two_checked.get() == 1 and p_two_v != '':
+        values.append(
+            f'-dSPM2:{p_two_v} -dSTK2:{"{:.2f}".format(int(p_two_v)/60)}')
+    if pump_three_checked.get() == 1 and p_three_v != '':
+        values.append(
+            f'-dSPM3:{p_three_v} -dSTK3:{"{:.2f}".format(int(p_three_v)/60)}')
     final = ' '.join(values)
     return final
 
@@ -139,6 +146,12 @@ app = Tk()
 
 getWellNumber()
 
+canvas = Canvas(app, bg="#4392F1", height=400, width=800,
+                bd=0, highlightthickness=0, relief="ridge")
+canvas.place(x=0, y=0)
+background_img = PhotoImage(file=resource_path('background.png'))
+background = canvas.create_image(400.0, 200.0, image=background_img)
+
 # Buttons
 
 all_wells_label = Label(app, text=allWells,  background='#b66e10', pady=20)
@@ -189,13 +202,14 @@ run_command_btn = Button(app, text='Start Pump',
 run_command_btn.grid(row=4, column=1, pady=20)
 
 Button(app, text="Stop Pump", background='#e00707',
-       command=stoppump).grid(row=4, column=3, pady=20)
+       command=stoppump).grid(row=5, column=1, pady=20)
 
 setEntryDisabled()
 
 app.title('Pump')
 app.geometry('800x400')
 app.configure(bg='#000')
+app.resizable(False, False)
 
 # To center all app columns
 # app.grid_columnconfigure((0, 1), weight=1)
