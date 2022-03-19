@@ -25,7 +25,7 @@ dirCommands = resource_path('Commands/').replace('/', '\\')
 def setEntryDisabled():
     pump_one_value_entry.config(state="disabled")
     pump_two_value_entry.config(state="disabled")
-    pump_three_value_entry.config(state="disabled")
+    pump_thr_value_entry.config(state="disabled")
 
 
 def change_check_value():
@@ -39,28 +39,31 @@ def change_check_value():
         pump_two_value_entry.config(state="disabled")
     else:
         pump_two_value_entry.config(state="normal")
-    if (pump_three_checked.get() == 0):
-        pump_three_value.set('')
-        pump_three_value_entry.config(state="disabled")
+    if (pump_thr_checked.get() == 0):
+        pump_thr_value.set('')
+        pump_thr_value_entry.config(state="disabled")
     else:
-        pump_three_value_entry.config(state="normal")
+        pump_thr_value_entry.config(state="normal")
 
 
 def getPumpsValues():
     values = []
     p_one_v = pump_one_value.get()
     p_two_v = pump_two_value.get()
-    p_three_v = pump_three_value.get()
+    p_thr_v = pump_thr_value.get()
 
     if pump_one_checked.get() == 1 and p_one_v != '':
+        stk1 = f'{"{:.2f}".format(int(p_one_v)/60)}' if int(p_one_v) > 60 else '1'
         values.append(
-            f'-dSPM1:{p_one_v} -dSTK1:{"{:.2f}".format(int(p_one_v)/60)}')
+            f'-dSPM1:{p_one_v} -dSTK1:{stk1}')
     if pump_two_checked.get() == 1 and p_two_v != '':
+        stk2 = f'{"{:.2f}".format(int(p_two_v)/60)}' if int(p_two_v) > 60 else '1'
         values.append(
-            f'-dSPM2:{p_two_v} -dSTK2:{"{:.2f}".format(int(p_two_v)/60)}')
-    if pump_three_checked.get() == 1 and p_three_v != '':
+            f'-dSPM2:{p_two_v} -dSTK2:{stk2}')
+    if pump_thr_checked.get() == 1 and p_thr_v != '':
+        stk3 = f'{"{:.2f}".format(int(p_thr_v)/60)}' if int(p_thr_v) > 60 else '1'
         values.append(
-            f'-dSPM3:{p_three_v} -dSTK3:{"{:.2f}".format(int(p_three_v)/60)}')
+            f'-dSPM3:{p_thr_v} -dSTK3:{stk3}')
     final = ' '.join(values)
     return final
 
@@ -110,14 +113,14 @@ def openOverrideCommand():
 
 
 def startpump():
-    if ((pump_one_checked.get() == 0 and pump_two_checked.get() == 0 and pump_three_checked.get() == 0)):
+    if ((pump_one_checked.get() == 0 and pump_two_checked.get() == 0 and pump_thr_checked.get() == 0)):
         messagebox.showerror(
             'Required Fields', 'Please check at least one pump')
         return
     if (wellNumber == ''
             or (pump_one_checked.get() == 1 and pump_one_value.get() == '')
             or (pump_two_checked.get() == 1 and pump_two_value.get() == '')
-            or (pump_three_checked.get() == 1 and pump_three_value.get() == '')):
+            or (pump_thr_checked.get() == 1 and pump_thr_value.get() == '')):
         messagebox.showerror('Required Fields', 'Please include all fields')
         return
     saveStartCommand()
@@ -192,8 +195,8 @@ pump_two_checked = IntVar()
 c2 = Checkbutton(app, text="Pump 2", variable=pump_two_checked, background='#b6108d', pady=20, padx=20, borderwidth=2, relief="ridge",
                  command=change_check_value)
 c2.grid(row=2, column=2)
-pump_three_checked = IntVar()
-c3 = Checkbutton(app, text="Pump 3", variable=pump_three_checked, background='#e938bd', pady=20, padx=20, borderwidth=2, relief="ridge",
+pump_thr_checked = IntVar()
+c3 = Checkbutton(app, text="Pump 3", variable=pump_thr_checked, background='#e938bd', pady=20, padx=20, borderwidth=2, relief="ridge",
                  command=change_check_value)
 c3.grid(row=2, column=3)
 
@@ -203,16 +206,16 @@ pump_value_label.grid(row=3, column=0)
 
 pump_one_value = StringVar()
 pump_two_value = StringVar()
-pump_three_value = StringVar()
+pump_thr_value = StringVar()
 pump_one_value_entry = Entry(app, textvariable=pump_one_value,
                              background='#e938bd', borderwidth=2, relief="ridge")
 pump_one_value_entry.grid(row=3, column=1)
 pump_two_value_entry = Entry(app, textvariable=pump_two_value,
                              background='#b6108d', borderwidth=2, relief="ridge")
 pump_two_value_entry.grid(row=3, column=2)
-pump_three_value_entry = Entry(
-    app, textvariable=pump_three_value, background='#e938bd', borderwidth=2, relief="ridge")
-pump_three_value_entry.grid(row=3, column=3)
+pump_thr_value_entry = Entry(
+    app, textvariable=pump_thr_value, background='#e938bd', borderwidth=2, relief="ridge")
+pump_thr_value_entry.grid(row=3, column=3)
 
 run_command_btn = Button(app, text='Start Pump',
                          background='#A3E4DB', command=startpump)
