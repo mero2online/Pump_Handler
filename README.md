@@ -5,15 +5,15 @@
 pipenv install
 
 # Run script
-python pump.py
+python Pump.py
 
 
 # Compiled with Pyinstaller
 
 # Windows
-pyinstaller --onefile --windowed pump.py
-pyinstaller --onefile --windowed --add-data 'src;src' pump.py
-pyinstaller --add-data 'src;src' -i ".\src\pump_icon.ico" --onefile --windowed pump.py
+pyinstaller --onefile --windowed Pump.py
+pyinstaller --onefile --windowed --add-data 'src;src' Pump.py
+pyinstaller --add-data 'src;src' -i ".\src\pump_icon.ico" --onefile --windowed Pump.py
 ```
 
 - Version: 1.0.0
