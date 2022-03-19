@@ -88,6 +88,13 @@ def getWellNumber():
     wellNumber = matched_lines[0].split('    ')[0]
 
 
+def populate_wells_list():
+    splitWells = allWells.split('\n')
+    wellByWell = splitWells[1:len(splitWells)-1]
+    for idx, well in enumerate(wellByWell):
+        wells_list.insert(END, f' {well}')
+
+
 def saveStartCommand():
     pumpsValues = getPumpsValues()
     command = f'sh\nqw\nWWsim -W{wellNumber} {pumpsValues}\nexit\nexit\n'
@@ -152,18 +159,28 @@ canvas.place(x=0, y=0)
 background_img = PhotoImage(file=resource_path('background.png'))
 background = canvas.create_image(400.0, 200.0, image=background_img)
 
-# Buttons
-
-all_wells_label = Label(app, text=allWells,  background='#b66e10', pady=20)
-all_wells_label.grid(row=0, column=2)
+# Wells List (Listbox)
+wells_list = Listbox(app, height=4, width=90, border=0, background='#5B7DB1',
+                     selectforeground='#1A132F', selectbackground='#10b6a8',
+                     selectborderwidth=2, activestyle='none')
+wells_list.grid(row=0, column=0, columnspan=5, rowspan=1, pady=20, padx=20)
+# Create scrollbar
+scrollbar = Scrollbar(app)
+scrollbar.grid(row=0, column=4)
+# Set scroll to listbox
+wells_list.configure(yscrollcommand=scrollbar.set)
+scrollbar.configure(command=wells_list.yview)
+# Bind select
+wells_list.bind('<<ListboxSelect>>')
 
 well_label = Label(app, text='Logging Well Number',
                    background='#10b6a8', pady=20, padx=20)
 well_label.grid(row=1, column=0)
 well_no_label = Label(app, text=wellNumber,
-                      background='#b66e10', pady=20, padx=20, width=5)
+                      background='#5B7DB1', font=('Arial', 15, 'bold'), pady=20, padx=20, width=5)
 well_no_label.grid(row=1, column=1)
 
+# Buttons
 pump_label = Label(app, text='Pump Number',
                    background='#10b6a8', pady=20, padx=20)
 pump_label.grid(row=2, column=0)
@@ -199,15 +216,16 @@ pump_three_value_entry.grid(row=3, column=3)
 
 run_command_btn = Button(app, text='Start Pump',
                          background='#A3E4DB', command=startpump)
-run_command_btn.grid(row=4, column=1, pady=20)
+run_command_btn.grid(row=4, column=1, pady=5)
 
 Button(app, text="Stop Pump", background='#e00707',
-       command=stoppump).grid(row=5, column=1, pady=20)
+       command=stoppump).grid(row=5, column=1, pady=5)
 
+populate_wells_list()
 setEntryDisabled()
 
 app.title('Pump')
-app.geometry('800x400')
+app.geometry('600x400')
 app.configure(bg='#000')
 app.resizable(False, False)
 
@@ -218,6 +236,9 @@ p1 = PhotoImage(file=resource_path('pump_icon.png'))
 
 # Setting icon of master window
 app.iconphoto(False, p1)
+
+wells_list.selection_set(int(wellNumber)-1)
+wells_list.yview_scroll(int(wellNumber)-2, 'units')
 
 # Start program
 app.mainloop()

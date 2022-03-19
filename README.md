@@ -18,4 +18,4 @@ pyinstaller --add-data 'src;src' -i ".\src\pump_icon.ico" --onefile --windowed p
 
 - Version: 1.0.0
 - License: MIT
-- Author: Brad Traversy
+- Author: Mero2online
