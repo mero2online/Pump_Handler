@@ -1,22 +1,12 @@
 from tkinter import messagebox
 from tkinter import *
 import os
-import sys
+from HelperFunc import *
 
 wellNumber = ''
 allWells = ''
 
 cwd = os.getcwd()
-
-
-def resource_path(relative_path):
-    try:
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-
-    return os.path.join(base_path, 'src/', relative_path)
-
 
 dirPuTTY = resource_path('PuTTY/').replace('/', '\\')
 dirCommands = resource_path('Commands/').replace('/', '\\')
@@ -54,16 +44,16 @@ def getPumpsValues():
 
     if pump_one_checked.get() == 1 and p_one_v != '':
         stk1 = f'{"{:.2f}".format(int(p_one_v)/60)}' if int(p_one_v) > 60 else '1'
-        values.append(
-            f'-dSPM1:{p_one_v} -dSTK1:{stk1}')
+        values.append(f'-dSPM1:{p_one_v} -dSTK1:{stk1}')
+
     if pump_two_checked.get() == 1 and p_two_v != '':
         stk2 = f'{"{:.2f}".format(int(p_two_v)/60)}' if int(p_two_v) > 60 else '1'
-        values.append(
-            f'-dSPM2:{p_two_v} -dSTK2:{stk2}')
+        values.append(f'-dSPM2:{p_two_v} -dSTK2:{stk2}')
+
     if pump_thr_checked.get() == 1 and p_thr_v != '':
         stk3 = f'{"{:.2f}".format(int(p_thr_v)/60)}' if int(p_thr_v) > 60 else '1'
-        values.append(
-            f'-dSPM3:{p_thr_v} -dSTK3:{stk3}')
+        values.append(f'-dSPM3:{p_thr_v} -dSTK3:{stk3}')
+
     final = ' '.join(values)
     return final
 
@@ -101,10 +91,7 @@ def populate_wells_list():
 def saveStartCommand():
     pumpsValues = getPumpsValues()
     command = f'sh\nqw\nWWsim -W{wellNumber} {pumpsValues}\nexit\nexit\n'
-    saveCommand = open(
-        resource_path('Commands/command1override.txt'), "w")
-    saveCommand.write(command)
-    saveCommand.close()
+    writeLocalFile(resource_path('Commands/command1override.txt'), command)
 
 
 def openOverrideCommand():
@@ -132,18 +119,13 @@ def stoppump():
     pathqp = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command2qp.txt > {dirCommands}logqp.txt \nexit'
     os.system(pathqp)
 
-    f = open(f'{dirCommands}logqp.txt', 'r')
-    logqp = f.read()
-    f.close()
+    logqp = readLocalFile(f'{dirCommands}logqp.txt')
 
     matched_lines = [line for line in logqp.split('\n') if "DATA-SIM" in line]
     dataSimValue = matched_lines[0].split('     ')[1].split(' ')[0]
 
     command = f'sh\nqp\nkill -s2 {dataSimValue}\nexit\nexit\n'
-    saveCommand = open(
-        resource_path('Commands/command3kill.txt'), "w")
-    saveCommand.write(command)
-    saveCommand.close()
+    writeLocalFile(resource_path('Commands/command3kill.txt'), command)
 
     pathkill = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command3kill.txt \nexit'
     os.system(pathkill)
