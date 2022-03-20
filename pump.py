@@ -110,18 +110,35 @@ def startpump():
             or (pump_thr_checked.get() == 1 and pump_thr_value.get() == '')):
         messagebox.showerror('Required Fields', 'Please include all fields')
         return
+
+    matched_lines = checkDataSim()
+    if len(matched_lines) > 0:
+        dataSimValue = matched_lines[0].split('     ')[1].split(' ')[0]
+        messagebox.showerror('Error', f'Please Stop DATA-SIM {dataSimValue} first')
+        return
+
     saveStartCommand()
     openOverrideCommand()
     print('start pump')
 
 
-def stoppump():
+def checkDataSim():
     pathqp = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command2qp.txt > {dirCommands}logqp.txt \nexit'
     os.system(pathqp)
 
     logqp = readLocalFile(f'{dirCommands}logqp.txt')
 
     matched_lines = [line for line in logqp.split('\n') if "DATA-SIM" in line]
+
+    return matched_lines
+
+
+def stoppump():
+    matched_lines = checkDataSim()
+    if len(matched_lines) == 0:
+        messagebox.showerror('Error', 'No DATA-SIM started yet')
+        return
+
     dataSimValue = matched_lines[0].split('     ')[1].split(' ')[0]
 
     command = f'sh\nqp\nkill -s2 {dataSimValue}\nexit\nexit\n'
