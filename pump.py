@@ -114,7 +114,8 @@ def startpump():
     matched_lines = checkDataSim()
     if len(matched_lines) > 0:
         dataSimValue = matched_lines[0].split('     ')[1].split(' ')[0]
-        messagebox.showerror('Error', f'Please Stop DATA-SIM {dataSimValue} first')
+        messagebox.showerror(
+            'Error', f'Please Stop DATA-SIM {dataSimValue} first')
         return
 
     saveStartCommand()
@@ -148,6 +149,24 @@ def stoppump():
     os.system(pathkill)
 
     print('stop pump')
+
+
+def limitInputPumpOne(var, index, mode):
+    value = pump_one_value.get()
+    if len(value) > 3:
+        pump_one_value.set(value[:3])
+
+
+def limitInputPumpTwo(var, index, mode):
+    value = pump_two_value.get()
+    if len(value) > 3:
+        pump_two_value.set(value[:3])
+
+
+def limitInputPumpThr(var, index, mode):
+    value = pump_thr_value.get()
+    if len(value) > 3:
+        pump_thr_value.set(value[:3])
 
 
 # Create window object
@@ -206,6 +225,11 @@ pump_value_label.grid(row=3, column=0)
 pump_one_value = StringVar()
 pump_two_value = StringVar()
 pump_thr_value = StringVar()
+
+pump_one_value.trace('w', limitInputPumpOne)
+pump_two_value.trace('w', limitInputPumpTwo)
+pump_thr_value.trace('w', limitInputPumpThr)
+
 pump_one_value_entry = Entry(app, textvariable=pump_one_value,
                              background='#e938bd', borderwidth=2, relief="ridge")
 pump_one_value_entry.grid(row=3, column=1)
