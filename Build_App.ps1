@@ -1,0 +1,1 @@
+pyinstaller --add-data 'src;src' -i ".\src\pump_icon.ico" --onefile --windowed Pump.py
