@@ -63,18 +63,17 @@ def getWellNumber():
     # if checkConnection == 1:
     #     messagebox.showerror('Network error', 'Please connect to server first')
 
-    path = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command0qw.txt > {dirCommands}logqw.txt \nexit'
+    path = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command0qw.txt > {dirCommands}log.txt \nexit'
     well = os.system(path)
     if well == 1:
         messagebox.showerror('Network error', 'Please connect to server first')
 
-    f = open(f'{dirCommands}logqw.txt', 'r')
-    logqw = f.read()
-    f.close()
+    log = readLocalFile(f'{dirCommands}log.txt')
+
     start = 'Well Type   Status   UWID                Name'
     end = 'Done querying wells'
     global allWells
-    allWells = logqw[logqw.find(start)+len(start):logqw.rfind(end)]
+    allWells = log[log.find(start)+len(start):log.rfind(end)]
     matched_lines = [line for line in allWells.split(
         '\n') if "Logging" in line]
     global wellNumber
@@ -90,12 +89,12 @@ def populate_wells_list():
 
 def saveStartCommand():
     pumpsValues = getPumpsValues()
-    command = f'sh\nqw\nWWsim -W{wellNumber} {pumpsValues}\nexit\nexit\n'
+    command = f'sh\nWWsim -W{wellNumber} {pumpsValues}\nexit\nexit\n'
     writeLocalFile(resource_path('Commands/command1override.txt'), command)
 
 
 def openOverrideCommand():
-    path = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command1override.txt \nexit'
+    path = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command1override.txt > {dirCommands}log.txt \nexit'
     os.system(path)
 
 
@@ -124,12 +123,12 @@ def startpump():
 
 
 def checkDataSim():
-    pathqp = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command2qp.txt > {dirCommands}logqp.txt \nexit'
+    pathqp = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command2qp.txt > {dirCommands}log.txt \nexit'
     os.system(pathqp)
 
-    logqp = readLocalFile(f'{dirCommands}logqp.txt')
+    log = readLocalFile(f'{dirCommands}log.txt')
 
-    matched_lines = [line for line in logqp.split('\n') if "DATA-SIM" in line]
+    matched_lines = [line for line in log.split('\n') if "DATA-SIM" in line]
 
     return matched_lines
 
@@ -142,7 +141,7 @@ def stoppump():
 
     dataSimValue = matched_lines[0].split('     ')[1].split(' ')[0]
 
-    command = f'sh\nqp\nkill -s2 {dataSimValue}\nexit\nexit\n'
+    command = f'sh\nkill -s2 {dataSimValue}\nexit\nexit\n'
     writeLocalFile(resource_path('Commands/command3kill.txt'), command)
 
     pathkill = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command3kill.txt \nexit'
@@ -169,9 +168,16 @@ def limitInputPumpThr(var, index, mode):
         pump_thr_value.set(value[:3])
 
 
+def clearFiles():
+    writeLocalFile(resource_path('Commands/command1override.txt'), '')
+    writeLocalFile(resource_path('Commands/command3kill.txt'), '')
+    writeLocalFile(resource_path('Commands/log.txt'), '')
+
+
 # Create window object
 app = Tk()
 
+clearFiles()
 getWellNumber()
 
 canvas = Canvas(app, bg="#4392F1", height=400, width=800,
