@@ -240,12 +240,13 @@ pump_thr_value_entry = Entry(
     app, textvariable=pump_thr_value, background='#e938bd', borderwidth=2, relief="ridge")
 pump_thr_value_entry.grid(row=3, column=3)
 
-run_command_btn = Button(app, text='Start Pump',
-                         background='#A3E4DB', command=startpump)
-run_command_btn.grid(row=4, column=1, pady=5)
+start_pump_btn = Button(app, text='Start Pump',
+                        background='#A3E4DB', command=startpump)
+start_pump_btn.grid(row=4, column=1, pady=5)
 
-Button(app, text="Stop Pump", background='#e00707',
-       command=stoppump).grid(row=5, column=1, pady=5)
+stop_pump_btn = Button(app, text="Stop Pump", background='#e00707',
+                       command=stoppump)
+stop_pump_btn.grid(row=5, column=1, pady=5)
 
 populate_wells_list()
 setEntryDisabled()
