@@ -1,4 +1,5 @@
 from tkinter import messagebox
+from tkinter.ttk import Progressbar
 from tkinter import *
 import os
 from HelperFunc import *
@@ -96,6 +97,8 @@ def saveStartCommand():
 def openOverrideCommand():
     path = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command1override.txt > {dirCommands}log.txt \nexit'
     os.system(path)
+    start_pump_btn.config(state='normal')
+    stop_pump_btn.config(state='normal')
 
 
 def startpump():
@@ -118,7 +121,10 @@ def startpump():
         return
 
     saveStartCommand()
-    openOverrideCommand()
+    start_pump_btn.config(state='disabled')
+    stop_pump_btn.config(state='disabled')
+    app.after(5000, openOverrideCommand)
+    startProgressBar()
     print('start pump')
 
 
@@ -133,6 +139,13 @@ def checkDataSim():
     return matched_lines
 
 
+def openKillCommand():
+    pathkill = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command3kill.txt > {dirCommands}log.txt \nexit'
+    os.system(pathkill)
+    start_pump_btn.config(state='normal')
+    stop_pump_btn.config(state='normal')
+
+
 def stoppump():
     matched_lines = checkDataSim()
     if len(matched_lines) == 0:
@@ -143,10 +156,10 @@ def stoppump():
 
     command = f'sh\nkill -s2 {dataSimValue}\nexit\nexit\n'
     writeLocalFile(resource_path('Commands/command3kill.txt'), command)
-
-    pathkill = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command3kill.txt \nexit'
-    os.system(pathkill)
-
+    start_pump_btn.config(state='disabled')
+    stop_pump_btn.config(state='disabled')
+    app.after(5000, openKillCommand)
+    startProgressBar()
     print('stop pump')
 
 
@@ -172,6 +185,17 @@ def clearFiles():
     writeLocalFile(resource_path('Commands/command1override.txt'), '')
     writeLocalFile(resource_path('Commands/command3kill.txt'), '')
     writeLocalFile(resource_path('Commands/log.txt'), '')
+
+
+def startProgressBar():
+    for idx, i in enumerate(range(1, 7, 1)):
+        if idx == 5:
+            stepVal = 1
+        else:
+            stepVal = 20
+
+        app.after(1000, p.step(stepVal))
+        app.update()
 
 
 # Create window object
@@ -253,6 +277,10 @@ start_pump_btn.grid(row=4, column=1, pady=5)
 stop_pump_btn = Button(app, text="Stop Pump", background='#e00707',
                        command=stoppump)
 stop_pump_btn.grid(row=5, column=1, pady=5)
+
+p = Progressbar(app, orient=HORIZONTAL, length=101,
+                mode="determinate", takefocus=True, maximum=101)
+p.place(x=200, y=385, width=300, height=15)
 
 populate_wells_list()
 setEntryDisabled()

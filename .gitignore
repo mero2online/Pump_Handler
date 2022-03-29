@@ -1,7 +1,7 @@
 __pycache__
 build
 dist
-pump.spec
+*.spec
 .vscode
 .DS_Store
 Pipfile.lock
