@@ -19,6 +19,11 @@ def setEntryDisabled():
     pump_thr_value_entry.config(state="disabled")
 
 
+def setButtonsDisabled():
+    start_pump_btn.config(state='disabled')
+    stop_pump_btn.config(state='disabled')
+
+
 def change_check_value():
     if (pump_one_checked.get() == 0):
         pump_one_value.set('')
@@ -68,7 +73,7 @@ def getWellNumber():
     well = os.system(path)
     if well == 1:
         messagebox.showerror('Network error', 'Please connect to server first')
-
+    countSeconds(5000)
     log = readLocalFile(f'{dirCommands}log.txt')
 
     start = 'Well Type   Status   UWID                Name'
@@ -97,8 +102,8 @@ def saveStartCommand():
 def openOverrideCommand():
     path = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command1override.txt > {dirCommands}log.txt \nexit'
     os.system(path)
-    start_pump_btn.config(state='normal')
-    stop_pump_btn.config(state='normal')
+    setButtonsDisabled()
+    countSeconds(5000)
 
 
 def startpump():
@@ -113,16 +118,16 @@ def startpump():
         messagebox.showerror('Required Fields', 'Please include all fields')
         return
 
-    matched_lines = checkDataSim()
-    if len(matched_lines) > 0:
-        dataSimValue = matched_lines[0].split('     ')[1].split(' ')[0]
+    setButtonsDisabled()
+    checkDataSim()
+    if len(dataSim_matched) > 0:
+        dataSimValue = dataSim_matched[0].split('     ')[1].split(' ')[0]
         messagebox.showerror(
             'Error', f'Please Stop DATA-SIM {dataSimValue} first')
         return
 
     saveStartCommand()
-    start_pump_btn.config(state='disabled')
-    stop_pump_btn.config(state='disabled')
+    setButtonsDisabled()
     app.after(5000, openOverrideCommand)
     startProgressBar()
     print('start pump')
@@ -134,30 +139,30 @@ def checkDataSim():
 
     log = readLocalFile(f'{dirCommands}log.txt')
 
-    matched_lines = [line for line in log.split('\n') if "DATA-SIM" in line]
-
-    return matched_lines
+    global dataSim_matched
+    dataSim_matched = [line for line in log.split('\n') if "DATA-SIM" in line]
+    countSeconds(5000)
 
 
 def openKillCommand():
     pathkill = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command3kill.txt > {dirCommands}log.txt \nexit'
     os.system(pathkill)
-    start_pump_btn.config(state='normal')
-    stop_pump_btn.config(state='normal')
+    setButtonsDisabled()
+    countSeconds(5000)
 
 
 def stoppump():
-    matched_lines = checkDataSim()
-    if len(matched_lines) == 0:
+    setButtonsDisabled()
+    checkDataSim()
+    if len(dataSim_matched) == 0:
         messagebox.showerror('Error', 'No DATA-SIM started yet')
         return
 
-    dataSimValue = matched_lines[0].split('     ')[1].split(' ')[0]
+    dataSimValue = dataSim_matched[0].split('     ')[1].split(' ')[0]
 
     command = f'sh\nkill -s2 {dataSimValue}\nexit\nexit\n'
     writeLocalFile(resource_path('Commands/command3kill.txt'), command)
-    start_pump_btn.config(state='disabled')
-    stop_pump_btn.config(state='disabled')
+    setButtonsDisabled()
     app.after(5000, openKillCommand)
     startProgressBar()
     print('stop pump')
@@ -196,6 +201,15 @@ def startProgressBar():
 
         app.after(1000, p.step(stepVal))
         app.update()
+
+
+def countSeconds(sec):
+    app.after(sec, setButtonsNormal)
+
+
+def setButtonsNormal():
+    start_pump_btn.config(state='normal')
+    stop_pump_btn.config(state='normal')
 
 
 # Create window object
@@ -284,6 +298,7 @@ p.place(x=200, y=385, width=300, height=15)
 
 populate_wells_list()
 setEntryDisabled()
+setButtonsDisabled()
 
 app.title('Pump')
 app.geometry('600x400')
