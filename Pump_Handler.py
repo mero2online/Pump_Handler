@@ -73,7 +73,7 @@ def getWellNumber():
     well = os.system(path)
     if well == 1:
         messagebox.showerror('Network error', 'Please connect to server first')
-    countSeconds(5000)
+
     log = readLocalFile(f'{dirCommands}log.txt')
 
     start = 'Well Type   Status   UWID                Name'
@@ -204,7 +204,13 @@ def startProgressBar():
 
 
 def countSeconds(sec):
-    app.after(sec, setButtonsNormal)
+    seconds = int(sec/1000)
+    waitSec.set(seconds)
+    app.update()
+    for i in range(seconds):
+        app.after(1000, waitSec.set(waitSec.get()-1))
+        app.update()
+    setButtonsNormal()
 
 
 def setButtonsNormal():
@@ -214,6 +220,8 @@ def setButtonsNormal():
 
 # Create window object
 app = Tk()
+
+waitSec = IntVar()
 
 clearFiles()
 getWellNumber()
@@ -296,6 +304,10 @@ p = Progressbar(app, orient=HORIZONTAL, length=101,
                 mode="determinate", takefocus=True, maximum=101)
 p.place(x=200, y=385, width=300, height=15)
 
+wait_label = Label(app, textvariable=waitSec,
+                   background='#5B7DB1', font=('Arial', 15, 'bold'), pady=20, padx=20, width=5)
+wait_label.place(x=300, y=350, width=25, height=25)
+
 populate_wells_list()
 setEntryDisabled()
 setButtonsDisabled()
@@ -315,6 +327,8 @@ app.iconphoto(False, p1)
 
 wells_list.selection_set(int(wellNumber)-1)
 wells_list.yview_scroll(int(wellNumber)-2, 'units')
+
+countSeconds(5000)
 
 # Start program
 app.mainloop()
