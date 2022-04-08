@@ -4,6 +4,12 @@ from tkinter import *
 import os
 from HelperFunc import *
 
+try:
+    import pyi_splash  # type: ignore
+    pyi_splash.close()
+except:
+    pass
+
 wellNumber = ''
 allWells = ''
 
