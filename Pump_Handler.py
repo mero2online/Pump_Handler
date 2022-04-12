@@ -231,6 +231,7 @@ waitSec = IntVar()
 
 clearFiles()
 getWellNumber()
+# wellNumber = 1
 
 canvas = Canvas(app, bg="#4392F1", height=400, width=800,
                 bd=0, highlightthickness=0, relief="ridge")
@@ -313,6 +314,11 @@ p.place(x=200, y=385, width=300, height=15)
 wait_label = Label(app, textvariable=waitSec,
                    background='#5B7DB1', font=('Arial', 15, 'bold'), pady=20, padx=20, width=5)
 wait_label.place(x=300, y=350, width=25, height=25)
+
+madeWithLoveBy = Label(
+    app, text='Made with ❤ by Mohamed Omar', background='#10b6a8', foreground='#000000',
+    font=('monospace', 9, 'bold'))
+madeWithLoveBy.place(x=0, y=380, width=190, height=20)
 
 populate_wells_list()
 setEntryDisabled()
