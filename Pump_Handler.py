@@ -48,6 +48,15 @@ def change_check_value():
         pump_thr_value_entry.config(state="normal")
 
 
+def getSTK_Value(pumpValue):
+    if int(pumpValue) == 0:
+        return '0'
+    elif int(pumpValue) > 60:
+        return f'{"{:.2f}".format(int(pumpValue)/60)}'
+    else:
+        return '1'
+
+
 def getPumpsValues():
     values = []
     p_one_v = pump_one_value.get()
@@ -55,15 +64,15 @@ def getPumpsValues():
     p_thr_v = pump_thr_value.get()
 
     if pump_one_checked.get() == 1 and p_one_v != '':
-        stk1 = f'{"{:.2f}".format(int(p_one_v)/60)}' if int(p_one_v) > 60 else '1'
+        stk1 = getSTK_Value(p_one_v)
         values.append(f'-dSPM1:{p_one_v} -dSTK1:{stk1}')
 
     if pump_two_checked.get() == 1 and p_two_v != '':
-        stk2 = f'{"{:.2f}".format(int(p_two_v)/60)}' if int(p_two_v) > 60 else '1'
+        stk2 = getSTK_Value(p_two_v)
         values.append(f'-dSPM2:{p_two_v} -dSTK2:{stk2}')
 
     if pump_thr_checked.get() == 1 and p_thr_v != '':
-        stk3 = f'{"{:.2f}".format(int(p_thr_v)/60)}' if int(p_thr_v) > 60 else '1'
+        stk3 = getSTK_Value(p_thr_v)
         values.append(f'-dSPM3:{p_thr_v} -dSTK3:{stk3}')
 
     final = ' '.join(values)
@@ -319,6 +328,11 @@ madeWithLoveBy = Label(
     app, text='Made with ❤ by Mohamed Omar', background='#10b6a8', foreground='#000000',
     font=('monospace', 9, 'bold'))
 madeWithLoveBy.place(x=0, y=380, width=190, height=20)
+
+versionNo = Label(
+    app, text='v1.1', background='#10b6a8', foreground='#000000',
+    font=('monospace', 9, 'bold'))
+versionNo.place(x=540, y=380, width=60, height=20)
 
 populate_wells_list()
 setEntryDisabled()
