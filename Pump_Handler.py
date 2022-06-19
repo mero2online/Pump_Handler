@@ -3,7 +3,7 @@ from tkinter.ttk import Progressbar
 from tkinter import *
 import os
 from HelperFunc import *
-
+from settings import appVersionNo
 try:
     import pyi_splash  # type: ignore
     pyi_splash.close()
@@ -121,7 +121,7 @@ def openOverrideCommand():
     countSeconds(5000)
 
 
-def startpump():
+def startPump():
     if ((pump_one_checked.get() == 0 and pump_two_checked.get() == 0 and pump_thr_checked.get() == 0)):
         messagebox.showerror(
             'Required Fields', 'Please check at least one pump')
@@ -160,13 +160,13 @@ def checkDataSim():
 
 
 def openKillCommand():
-    pathkill = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command3kill.txt > {dirCommands}log.txt \nexit'
-    os.system(pathkill)
+    pathKill = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command3kill.txt > {dirCommands}log.txt \nexit'
+    os.system(pathKill)
     setButtonsDisabled()
     countSeconds(5000)
 
 
-def stoppump():
+def stopPump():
     setButtonsDisabled()
     checkDataSim()
     if len(dataSim_matched) == 0:
@@ -309,11 +309,11 @@ pump_thr_value_entry = Entry(
 pump_thr_value_entry.grid(row=3, column=3)
 
 start_pump_btn = Button(app, text='Start Pump',
-                        background='#A3E4DB', command=startpump)
+                        background='#A3E4DB', command=startPump)
 start_pump_btn.grid(row=4, column=1, pady=5)
 
 stop_pump_btn = Button(app, text="Stop Pump", background='#e00707',
-                       command=stoppump)
+                       command=stopPump)
 stop_pump_btn.grid(row=5, column=1, pady=5)
 
 p = Progressbar(app, orient=HORIZONTAL, length=101,
@@ -330,7 +330,7 @@ madeWithLoveBy = Label(
 madeWithLoveBy.place(x=0, y=380, width=190, height=20)
 
 versionNo = Label(
-    app, text='v1.1', background='#10b6a8', foreground='#000000',
+    app, text=f'v.{appVersionNo}', background='#10b6a8', foreground='#000000',
     font=('monospace', 9, 'bold'))
 versionNo.place(x=540, y=380, width=60, height=20)
 
