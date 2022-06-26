@@ -221,11 +221,25 @@ def startProgressBar():
 def countSeconds(sec):
     seconds = int(sec/1000)
     waitSec.set(seconds)
+    showWaitLabel()
     app.update()
     for i in range(seconds):
         app.after(1000, waitSec.set(waitSec.get()-1))
+        hideWaitLabel() if waitSec.get() == 0 else showWaitLabel()
         app.update()
     setButtonsNormal()
+
+
+def showWaitLabel():
+    wait_labelText_sec.place(x=405, y=350, width=50, height=25)
+    wait_label.place(x=380, y=350, width=25, height=25)
+    wait_labelText.place(x=250, y=350, width=130, height=25)
+
+
+def hideWaitLabel():
+    wait_labelText_sec.place(x=0, y=0, width=0, height=0)
+    wait_label.place(x=0, y=0, width=0, height=0)
+    wait_labelText.place(x=0, y=0, width=0, height=0)
 
 
 def setButtonsNormal():
@@ -255,66 +269,63 @@ wells_list = Listbox(app, height=4, width=90, border=0, background='#5B7DB1',
 wells_list.grid(row=0, column=0, columnspan=5, rowspan=1, pady=20, padx=20)
 # Create scrollbar
 scrollbar = Scrollbar(app)
-scrollbar.grid(row=0, column=4)
+scrollbar.place(x=567, y=21, height=80)
 # Set scroll to listbox
 wells_list.configure(yscrollcommand=scrollbar.set)
 scrollbar.configure(command=wells_list.yview)
 # Bind select
 wells_list.bind('<<ListboxSelect>>')
 
-well_label = Label(app, text='Logging Well Number',
-                   background='#10b6a8', pady=20, padx=20)
-well_label.grid(row=1, column=0)
+labels = ['Logging Well Number', 'Pump Number', 'Pump Value']
+
+for i, v in enumerate(labels):
+    label = Label(app, text=v, background='#10b6a8', pady=20, padx=20)
+    xPlace = 20
+    yPlace = (i*65)+120
+    label.place(x=xPlace, y=yPlace, width=140, height=50)
+
 well_no_label = Label(app, text=wellNumber,
-                      background='#5B7DB1', font=('Arial', 15, 'bold'), pady=20, padx=20, width=5)
-well_no_label.grid(row=1, column=1)
+                      background='#5B7DB1', font=('Arial', 15, 'bold'), pady=20, padx=20)
+well_no_label.place(x=180, y=120, width=100, height=50)
 
 # Buttons
-pump_label = Label(app, text='Pump Number',
-                   background='#10b6a8', pady=20, padx=20)
-pump_label.grid(row=2, column=0)
-pump_one_checked = IntVar()
-c1 = Checkbutton(app, text="Pump 1", variable=pump_one_checked, background='#e938bd', pady=20, padx=20, borderwidth=2, relief="ridge",
-                 command=change_check_value)
-c1.grid(row=2, column=1)
-pump_two_checked = IntVar()
-c2 = Checkbutton(app, text="Pump 2", variable=pump_two_checked, background='#b6108d', pady=20, padx=20, borderwidth=2, relief="ridge",
-                 command=change_check_value)
-c2.grid(row=2, column=2)
-pump_thr_checked = IntVar()
-c3 = Checkbutton(app, text="Pump 3", variable=pump_thr_checked, background='#e938bd', pady=20, padx=20, borderwidth=2, relief="ridge",
-                 command=change_check_value)
-c3.grid(row=2, column=3)
+pumpsBtnVars = []
+for i in range(3):
+    var = IntVar()
+    pumpsBtnVars.append(var)
+    chkBtn = Checkbutton(app, text=f"Pump {i+1}", variable=var, background='#5B7DB1',
+                         pady=20, padx=20, borderwidth=2, relief="ridge", font=('Arial', 10, 'bold'),
+                         command=change_check_value)
+    xPlace = (i*120)+180
+    yPlace = 185
+    chkBtn.place(x=xPlace, y=yPlace, width=90, height=50)
 
-pump_value_label = Label(app, text='Pump Value',
-                         background='#10b6a8', pady=20, padx=20)
-pump_value_label.grid(row=3, column=0)
+pump_one_checked, pump_two_checked, pump_thr_checked = pumpsBtnVars
 
-pump_one_value = StringVar()
-pump_two_value = StringVar()
-pump_thr_value = StringVar()
+pumpsVars = []
+pumpsEntry = []
+limitFunc = [limitInputPumpOne, limitInputPumpTwo, limitInputPumpThr]
+for i in range(3):
+    var = StringVar()
+    var.trace('w', limitFunc[i])
+    pumpsVars.append(var)
+    entry = Entry(app, textvariable=var, background='#5B7DB1',
+                  borderwidth=2, relief="ridge", font=('Arial', 15, 'bold'))
+    xPlace = (i*120)+180
+    yPlace = 250
+    entry.place(x=xPlace, y=yPlace, width=90, height=50)
+    pumpsEntry.append(entry)
 
-pump_one_value.trace('w', limitInputPumpOne)
-pump_two_value.trace('w', limitInputPumpTwo)
-pump_thr_value.trace('w', limitInputPumpThr)
-
-pump_one_value_entry = Entry(app, textvariable=pump_one_value,
-                             background='#e938bd', borderwidth=2, relief="ridge")
-pump_one_value_entry.grid(row=3, column=1)
-pump_two_value_entry = Entry(app, textvariable=pump_two_value,
-                             background='#b6108d', borderwidth=2, relief="ridge")
-pump_two_value_entry.grid(row=3, column=2)
-pump_thr_value_entry = Entry(
-    app, textvariable=pump_thr_value, background='#e938bd', borderwidth=2, relief="ridge")
-pump_thr_value_entry.grid(row=3, column=3)
+pump_one_value, pump_two_value, pump_thr_value = pumpsVars
+pump_one_value_entry, pump_two_value_entry, pump_thr_value_entry = pumpsEntry
 
 start_pump_btn = Button(app, text='Start Pump',
                         background='#A3E4DB', command=startPump)
-start_pump_btn.grid(row=4, column=1, pady=5)
+start_pump_btn.place(x=50, y=310, width=90, height=30)
 
-stop_pump_btn = Button(app, text="Stop Pump", background='#e00707',
-                       command=stopPump)
-stop_pump_btn.grid(row=5, column=1, pady=5)
+stop_pump_btn = Button(app, text="Stop Pump",
+                       background='#e00707', command=stopPump)
+stop_pump_btn.place(x=50, y=345, width=90, height=30)
 
 p = Progressbar(app, orient=HORIZONTAL, length=101,
                 mode="determinate", takefocus=True, maximum=101)
@@ -322,7 +333,12 @@ p.place(x=200, y=385, width=300, height=15)
 
 wait_label = Label(app, textvariable=waitSec,
                    background='#5B7DB1', font=('Arial', 15, 'bold'), pady=20, padx=20, width=5)
-wait_label.place(x=300, y=350, width=25, height=25)
+
+wait_labelText = Label(app, text='Please Wait',
+                       background='#5B7DB1', font=('Arial', 15, 'bold'), pady=20, padx=20, width=5)
+wait_labelText_sec = Label(app, text='Sec',
+                       background='#5B7DB1', font=('Arial', 15, 'bold'), pady=20, padx=20, width=5)
+showWaitLabel()
 
 madeWithLoveBy = Label(
     app, text='Made with ❤ by Mohamed Omar', background='#10b6a8', foreground='#000000',
@@ -338,7 +354,7 @@ populate_wells_list()
 setEntryDisabled()
 setButtonsDisabled()
 
-app.title('Pump')
+app.title('Pump_Handler')
 app.geometry('600x400')
 app.configure(bg='#000')
 app.resizable(False, False)
