@@ -183,22 +183,14 @@ def stopPump():
     print('stop pump')
 
 
-def limitInputPumpOne(var, index, mode):
-    value = pump_one_value.get()
+def limitInputPump(i, var):
+    value = var.get()
     if len(value) > 3:
-        pump_one_value.set(value[:3])
-
-
-def limitInputPumpTwo(var, index, mode):
-    value = pump_two_value.get()
-    if len(value) > 3:
-        pump_two_value.set(value[:3])
-
-
-def limitInputPumpThr(var, index, mode):
-    value = pump_thr_value.get()
-    if len(value) > 3:
-        pump_thr_value.set(value[:3])
+        var.set(value[:3])
+    if value != '' and int(value) > 200:
+        messagebox.showerror(
+            'Error', f'Pump {i+1} value {value} exceed value limit')
+        var.set(value[:2])
 
 
 def clearFiles():
@@ -304,10 +296,10 @@ pump_one_checked, pump_two_checked, pump_thr_checked = pumpsBtnVars
 
 pumpsVars = []
 pumpsEntry = []
-limitFunc = [limitInputPumpOne, limitInputPumpTwo, limitInputPumpThr]
 for i in range(3):
     var = StringVar()
-    var.trace('w', limitFunc[i])
+    var.trace('w', lambda var, index, mode,
+              idx=i, varia=var: limitInputPump(idx, varia))
     pumpsVars.append(var)
     entry = Entry(app, textvariable=var, background='#5B7DB1',
                   borderwidth=2, relief="ridge", font=('Arial', 15, 'bold'))
@@ -337,7 +329,7 @@ wait_label = Label(app, textvariable=waitSec,
 wait_labelText = Label(app, text='Please Wait',
                        background='#5B7DB1', font=('Arial', 15, 'bold'), pady=20, padx=20, width=5)
 wait_labelText_sec = Label(app, text='Sec',
-                       background='#5B7DB1', font=('Arial', 15, 'bold'), pady=20, padx=20, width=5)
+                           background='#5B7DB1', font=('Arial', 15, 'bold'), pady=20, padx=20, width=5)
 showWaitLabel()
 
 madeWithLoveBy = Label(
