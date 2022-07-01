@@ -2,6 +2,10 @@ from tkinter import messagebox
 from tkinter.ttk import Progressbar
 from tkinter import *
 import os
+import shutil
+import keyboard as kb
+import win32api
+
 from HelperFunc import *
 from settings import appVersionNo
 try:
@@ -77,6 +81,26 @@ def getPumpsValues():
 
     final = ' '.join(values)
     return final
+
+
+def openPuTTY():
+    homeDrive = os.environ['HOMEDRIVE']
+    homePath = os.environ['HOMEPATH']
+    local_PuTTY_path = f'{homeDrive}{homePath}\\Documents\\PuTTY'
+    src_files = os.listdir(resource_path('PuTTY'))
+    if os.path.exists(local_PuTTY_path) == False:
+        os.mkdir(local_PuTTY_path)
+        # shutil.rmtree(local_PuTTY_path)
+    for file_name in src_files:
+        if os.path.isfile(resource_path(f'PuTTY\\{file_name}')):
+            shutil.copy(resource_path(f'PuTTY\\{file_name}'), local_PuTTY_path)
+
+    win32api.LoadKeyboardLayout('00000409', 1)  # to switch to english
+    path = f'start {local_PuTTY_path}\\plink.exe root@192.168.10.10 -pw WeatherfordSLS'
+    os.system(path)
+    kb.press('enter')
+    kb.write('sh')
+    kb.press('enter')
 
 
 def getWellNumber():
@@ -341,6 +365,11 @@ versionNo = Label(
     app, text=f'v.{appVersionNo}', background='#10b6a8', foreground='#000000',
     font=('monospace', 9, 'bold'))
 versionNo.place(x=540, y=380, width=60, height=20)
+
+icon = PhotoImage(file=resource_path('PuTTY_icon.png'))
+openPuTTY_btn = Button(app, text="PuTTY", image=icon,
+                       background='#fff', command=openPuTTY)
+openPuTTY_btn.place(x=540, y=320, width=40, height=37)
 
 populate_wells_list()
 setEntryDisabled()
