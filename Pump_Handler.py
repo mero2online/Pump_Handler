@@ -5,6 +5,7 @@ import os
 import shutil
 import keyboard as kb
 import win32api
+import threading
 
 from HelperFunc import *
 from settings import appVersionNo
@@ -14,7 +15,6 @@ try:
 except:
     pass
 
-wellNumber = ''
 allWells = ''
 
 cwd = os.getcwd()
@@ -112,17 +112,17 @@ def getWellNumber():
     well = os.system(path)
     if well == 1:
         messagebox.showerror('Network error', 'Please connect to server first')
+        wellNumber.set('0')
+    else:
+        log = readLocalFile(f'{dirCommands}log.txt')
 
-    log = readLocalFile(f'{dirCommands}log.txt')
-
-    start = 'Well Type   Status   UWID                Name'
-    end = 'Done querying wells'
-    global allWells
-    allWells = log[log.find(start)+len(start):log.rfind(end)]
-    matched_lines = [line for line in allWells.split(
-        '\n') if "Logging" in line]
-    global wellNumber
-    wellNumber = matched_lines[0].split('    ')[0]
+        start = 'Well Type   Status   UWID                Name'
+        end = 'Done querying wells'
+        global allWells
+        allWells = log[log.find(start)+len(start):log.rfind(end)]
+        matched_lines = [line for line in allWells.split(
+            '\n') if "Logging" in line]
+        wellNumber.set(matched_lines[0].split('    ')[0])
 
 
 def populate_wells_list():
@@ -134,7 +134,7 @@ def populate_wells_list():
 
 def saveStartCommand():
     pumpsValues = getPumpsValues()
-    command = f'sh\nWWsim -W{wellNumber} {pumpsValues}\nexit\nexit\n'
+    command = f'sh\nWWsim -W{wellNumber.get()} {pumpsValues}\nexit\nexit\n'
     writeLocalFile(resource_path('Commands/command1override.txt'), command)
 
 
@@ -150,7 +150,7 @@ def startPump():
         messagebox.showerror(
             'Required Fields', 'Please check at least one pump')
         return
-    if (wellNumber == ''
+    if (wellNumber.get() == ''
             or (pump_one_checked.get() == 1 and pump_one_value.get() == '')
             or (pump_two_checked.get() == 1 and pump_two_value.get() == '')
             or (pump_thr_checked.get() == 1 and pump_thr_value.get() == '')):
@@ -167,7 +167,8 @@ def startPump():
 
     saveStartCommand()
     setButtonsDisabled()
-    app.after(5000, openOverrideCommand)
+    # app.after(5000, openOverrideCommand)
+    threading.Timer(5, openOverrideCommand).start()
     startProgressBar()
     print('start pump')
 
@@ -202,7 +203,8 @@ def stopPump():
     command = f'sh\nkill -s2 {dataSimValue}\nexit\nexit\n'
     writeLocalFile(resource_path('Commands/command3kill.txt'), command)
     setButtonsDisabled()
-    app.after(5000, openKillCommand)
+    threading.Timer(5, openKillCommand).start()
+    # app.after(5000, openKillCommand)
     startProgressBar()
     print('stop pump')
 
@@ -223,15 +225,23 @@ def clearFiles():
     writeLocalFile(resource_path('Commands/log.txt'), '')
 
 
+def stepVa(idx):
+    stepVal = 1 if idx == 5 else 20
+    p.step(stepVal)
+
+
 def startProgressBar():
     for idx, i in enumerate(range(1, 7, 1)):
-        if idx == 5:
-            stepVal = 1
-        else:
-            stepVal = 20
-
-        app.after(1000, p.step(stepVal))
+        threading.Timer(i, lambda id=idx: stepVa(id)).start()
+        # app.after(1000, p.step(stepVal))
         app.update()
+
+
+def cb():
+    waitSec.set(waitSec.get()-1)
+    hideWaitLabel() if waitSec.get() == 0 else showWaitLabel()
+    setButtonsNormal() if waitSec.get() < 1 else setButtonsDisabled()
+    app.update()
 
 
 def countSeconds(sec):
@@ -240,10 +250,8 @@ def countSeconds(sec):
     showWaitLabel()
     app.update()
     for i in range(seconds):
-        app.after(1000, waitSec.set(waitSec.get()-1))
-        hideWaitLabel() if waitSec.get() == 0 else showWaitLabel()
-        app.update()
-    setButtonsNormal()
+        # app.after(1000, waitSec.set(waitSec.get()-1))
+        threading.Timer(i+1, cb).start()
 
 
 def showWaitLabel():
@@ -269,8 +277,6 @@ app = Tk()
 waitSec = IntVar()
 
 clearFiles()
-getWellNumber()
-# wellNumber = 1
 
 canvas = Canvas(app, bg="#4392F1", height=400, width=800,
                 bd=0, highlightthickness=0, relief="ridge")
@@ -300,7 +306,9 @@ for i, v in enumerate(labels):
     yPlace = (i*65)+120
     label.place(x=xPlace, y=yPlace, width=140, height=50)
 
-well_no_label = Label(app, text=wellNumber,
+global wellNumber
+wellNumber = StringVar()
+well_no_label = Label(app, textvariable=wellNumber,
                       background='#5B7DB1', font=('Arial', 15, 'bold'), pady=20, padx=20)
 well_no_label.place(x=180, y=120, width=100, height=50)
 
@@ -371,10 +379,6 @@ openPuTTY_btn = Button(app, text="PuTTY", image=icon,
                        background='#fff', command=openPuTTY)
 openPuTTY_btn.place(x=540, y=320, width=40, height=37)
 
-populate_wells_list()
-setEntryDisabled()
-setButtonsDisabled()
-
 app.title('Pump_Handler')
 app.geometry('600x400')
 app.configure(bg='#000')
@@ -388,10 +392,24 @@ p1 = PhotoImage(file=resource_path('pump_icon.png'))
 # Setting icon of master window
 app.iconphoto(False, p1)
 
-wells_list.selection_set(int(wellNumber)-1)
-wells_list.yview_scroll(int(wellNumber)-2, 'units')
+getWellNumber()
+wells_list.selection_set(int(wellNumber.get())-1)
+wells_list.yview_scroll(int(wellNumber.get())-2, 'units')
 
-countSeconds(5000)
+populate_wells_list()
+setEntryDisabled()
+setButtonsDisabled()
+
+
+def closeApp():
+    app.destroy()
+    return
+
+
+if wellNumber.get() == '0':
+    closeApp()
+else:
+    countSeconds(5000)
 
 # Start program
 app.mainloop()
