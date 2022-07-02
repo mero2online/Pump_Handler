@@ -103,19 +103,21 @@ def openPuTTY():
     kb.press('enter')
 
 
-def getWellNumber():
-    # checkConnection = os.system('ping 192.168.10.10 -n 1')
-    # if checkConnection == 1:
-    #     messagebox.showerror('Network error', 'Please connect to server first')
+def startMinCommand(path):
+    writeLocalFile(f'{dirCommands}\\command.bat', path)
+    os.system(f'start /min {dirCommands}\\command.bat')
+    app.after(500, print('ok'))
+    writeLocalFile(f'{dirCommands}\\command.bat', '')
 
+
+def getWellNumber():
     path = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command0qw.txt > {dirCommands}log.txt \nexit'
-    well = os.system(path)
-    if well == 1:
+    startMinCommand(path)
+    log = readLocalFile(f'{dirCommands}log.txt')
+    if len(log.splitlines()) == 0:
         messagebox.showerror('Network error', 'Please connect to server first')
         wellNumber.set('0')
     else:
-        log = readLocalFile(f'{dirCommands}log.txt')
-
         start = 'Well Type   Status   UWID                Name'
         end = 'Done querying wells'
         global allWells
@@ -140,7 +142,7 @@ def saveStartCommand():
 
 def openOverrideCommand():
     path = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command1override.txt > {dirCommands}log.txt \nexit'
-    os.system(path)
+    startMinCommand(path)
     setButtonsDisabled()
     countSeconds(5000)
 
@@ -175,7 +177,7 @@ def startPump():
 
 def checkDataSim():
     pathqp = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command2qp.txt > {dirCommands}log.txt \nexit'
-    os.system(pathqp)
+    startMinCommand(pathqp)
 
     log = readLocalFile(f'{dirCommands}log.txt')
 
@@ -186,7 +188,7 @@ def checkDataSim():
 
 def openKillCommand():
     pathKill = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command3kill.txt > {dirCommands}log.txt \nexit'
-    os.system(pathKill)
+    startMinCommand(pathKill)
     setButtonsDisabled()
     countSeconds(5000)
 
