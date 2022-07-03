@@ -84,9 +84,8 @@ def getPumpsValues():
 
 
 def openPuTTY():
-    homeDrive = os.environ['HOMEDRIVE']
-    homePath = os.environ['HOMEPATH']
-    local_PuTTY_path = f'{homeDrive}{homePath}\\Documents\\PuTTY'
+    tempPath = os.environ['TEMP']
+    local_PuTTY_path = f'{tempPath}\\PuTTY'
     src_files = os.listdir(resource_path('PuTTY'))
     if os.path.exists(local_PuTTY_path) == False:
         os.mkdir(local_PuTTY_path)
@@ -106,7 +105,7 @@ def openPuTTY():
 def startMinCommand(path):
     writeLocalFile(f'{dirCommands}\\command.bat', path)
     os.system(f'start /min {dirCommands}\\command.bat')
-    app.after(500, print('ok'))
+    app.after(1000, print('ok'))
     writeLocalFile(f'{dirCommands}\\command.bat', '')
 
 
