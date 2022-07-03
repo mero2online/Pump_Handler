@@ -1,5 +1,6 @@
 import PyInstaller.__main__
 import os
+import shutil
 from settings import appVersionNo
 from platform import release, architecture
 
@@ -15,5 +16,9 @@ PyInstaller.__main__.run([
     '--splash', ".\src\pump_splash.png",
 ])
 
+dirsToRemove = [f'{cwd}\\build', f'{cwd}\\__pycache__']
+for d in dirsToRemove:
+    if os.path.exists(d):
+        shutil.rmtree(d)
 os.chdir(f'{cwd}\dist')  # Change directory to run command
 os.system('start.')  # Run command
