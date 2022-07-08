@@ -1,1 +1,1 @@
-appVersionNo = '1.3'
+appVersionNo = '1.3.1'

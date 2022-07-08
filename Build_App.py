@@ -1,10 +1,12 @@
 import PyInstaller.__main__
 import os
 import shutil
+from HelperFunc import writeLocalFile
 from settings import appVersionNo
 from platform import release, architecture
 
 cwd = os.getcwd()
+writeLocalFile(f'{cwd}/src/Commands/log.txt', '')
 
 PyInstaller.__main__.run([
     'Pump_Handler.py',
