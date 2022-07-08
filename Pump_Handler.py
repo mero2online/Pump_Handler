@@ -32,6 +32,7 @@ def setEntryDisabled():
 def setButtonsDisabled():
     start_pump_btn.config(state='disabled')
     stop_pump_btn.config(state='disabled')
+    openPuTTY_btn.config(state='disabled')
 
 
 def change_check_value():
@@ -97,7 +98,9 @@ def openPuTTY():
     win32api.LoadKeyboardLayout('00000409', 1)  # to switch to english
     path = f'start {local_PuTTY_path}\\plink.exe root@192.168.10.10 -pw WeatherfordSLS'
     os.system(path)
+    app.after(1000, print('OK'))
     kb.press('enter')
+    app.after(500, print('OK'))
     kb.write('sh')
     kb.press('enter')
 
@@ -270,6 +273,7 @@ def hideWaitLabel():
 def setButtonsNormal():
     start_pump_btn.config(state='normal')
     stop_pump_btn.config(state='normal')
+    openPuTTY_btn.config(state='normal')
 
 
 # Create window object
