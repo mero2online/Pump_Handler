@@ -384,7 +384,7 @@ openPuTTY_btn = Button(app, text="PuTTY", image=icon,
                        background='#fff', command=openPuTTY)
 openPuTTY_btn.place(x=540, y=320, width=40, height=37)
 
-app.title('Pump_Handler')
+app.title(f'Pump_Handler {appVersionNo}')
 app.geometry('600x400')
 app.configure(bg='#000')
 app.resizable(False, False)

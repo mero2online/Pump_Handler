@@ -8,9 +8,10 @@ from platform import release, architecture
 cwd = os.getcwd()
 writeLocalFile(f'{cwd}/src/Commands/log.txt', '')
 
+outputFileName = f'Pump_Handler_v{appVersionNo}-Win_{release()}-{architecture()[0]}'
 PyInstaller.__main__.run([
     'Pump_Handler.py',
-    f'-n Pump_Handler_v{appVersionNo}-Win_{release()}-{architecture()[0]}',
+    f'-n{outputFileName}',
     '--onefile',
     '--windowed',
     '--add-data', 'src;src',
@@ -22,5 +23,6 @@ dirsToRemove = [f'{cwd}\\build', f'{cwd}\\__pycache__']
 for d in dirsToRemove:
     if os.path.exists(d):
         shutil.rmtree(d)
-os.chdir(f'{cwd}\dist')  # Change directory to run command
-os.system('start.')  # Run command
+os.remove(f'{cwd}\\{outputFileName}.spec')
+
+os.startfile(f'{cwd}\dist')
