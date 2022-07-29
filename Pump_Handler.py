@@ -15,8 +15,6 @@ try:
 except:
     pass
 
-allWells = ''
-
 cwd = os.getcwd()
 
 dirPuTTY = resource_path('PuTTY/').replace('/', '\\')
@@ -85,6 +83,8 @@ def getPumpsValues():
 
 
 def openPuTTY():
+    sessionCommand = f'powershell reg import {dirPuTTY}putty-sessions.reg'
+    os.system(sessionCommand)
     tempPath = os.environ['TEMP']
     local_PuTTY_path = f'{tempPath}\\PuTTY'
     src_files = os.listdir(resource_path('PuTTY'))
@@ -96,11 +96,9 @@ def openPuTTY():
             shutil.copy(resource_path(f'PuTTY\\{file_name}'), local_PuTTY_path)
 
     win32api.LoadKeyboardLayout('00000409', 1)  # to switch to english
-    path = f'start {local_PuTTY_path}\\plink.exe root@192.168.10.10 -pw WeatherfordSLS'
+    path = f'start {local_PuTTY_path}\\putty.exe -load "Server" -l root -pw WeatherfordSLS'
     os.system(path)
     app.after(1000, print('OK'))
-    kb.press('enter')
-    app.after(500, print('OK'))
     kb.write('sh')
     kb.press('enter')
 
@@ -120,19 +118,21 @@ def getWellNumber():
         messagebox.showerror('Network error', 'Please connect to server first')
         wellNumber.set('0')
     else:
-        start = 'Well Type   Status   UWID                Name'
+        start = 'Well Type   Status   UWID                Name\n'
         end = 'Done querying wells'
-        global allWells
+        global listAllWells
         allWells = log[log.find(start)+len(start):log.rfind(end)]
-        matched_lines = [line for line in allWells.split(
-            '\n') if "Logging" in line]
-        wellNumber.set(matched_lines[0].split('    ')[0])
+        listAllWells = allWells.splitlines()
+        for i, w in enumerate(listAllWells):
+            splitted = w.split()
+            if splitted[2] == 'Logging':
+                wellNumber.set(splitted[0])
+                wellIndex.set(i)
+                wellName.set(splitted[4])
 
 
 def populate_wells_list():
-    splitWells = allWells.split('\n')
-    wellByWell = splitWells[1:len(splitWells)-1]
-    for idx, well in enumerate(wellByWell):
+    for idx, well in enumerate(listAllWells):
         wells_list.insert(END, f' {well}')
 
 
@@ -311,8 +311,10 @@ for i, v in enumerate(labels):
     yPlace = (i*65)+120
     label.place(x=xPlace, y=yPlace, width=140, height=50)
 
-global wellNumber
+global wellNumber, wellIndex, wellName
 wellNumber = StringVar()
+wellIndex = IntVar()
+wellName = StringVar()
 well_no_label = Label(app, textvariable=wellNumber,
                       background='#5B7DB1', font=('Arial', 15, 'bold'), pady=20, padx=20)
 well_no_label.place(x=180, y=120, width=100, height=50)
@@ -398,10 +400,10 @@ p1 = PhotoImage(file=resource_path('pump_icon.png'))
 app.iconphoto(False, p1)
 
 getWellNumber()
-wells_list.selection_set(int(wellNumber.get())-1)
-wells_list.yview_scroll(int(wellNumber.get())-2, 'units')
-
 populate_wells_list()
+wells_list.selection_set(wellIndex.get())
+wells_list.yview_scroll(wellIndex.get(), 'units')
+
 setEntryDisabled()
 setButtonsDisabled()
 
