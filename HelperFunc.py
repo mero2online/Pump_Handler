@@ -20,6 +20,6 @@ def readLocalFile(filename):
 
 
 def writeLocalFile(filename, txt):
-    f = open(filename, 'w')
+    f = open(filename, mode='w', newline='')
     f.write(txt)
     f.close()

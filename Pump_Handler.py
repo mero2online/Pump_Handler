@@ -6,6 +6,8 @@ import shutil
 import keyboard as kb
 import win32api
 import threading
+import paramiko
+from paramiko_expect import SSHClientInteraction
 
 from HelperFunc import *
 from settings import appVersionNo
@@ -19,18 +21,6 @@ cwd = os.getcwd()
 
 dirPuTTY = resource_path('PuTTY/').replace('/', '\\')
 dirCommands = resource_path('Commands/').replace('/', '\\')
-
-
-def setEntryDisabled():
-    pump_one_value_entry.config(state="disabled")
-    pump_two_value_entry.config(state="disabled")
-    pump_thr_value_entry.config(state="disabled")
-
-
-def setButtonsDisabled():
-    start_pump_btn.config(state='disabled')
-    stop_pump_btn.config(state='disabled')
-    openPuTTY_btn.config(state='disabled')
 
 
 def change_check_value():
@@ -103,16 +93,38 @@ def openPuTTY():
     kb.press('enter')
 
 
-def startMinCommand(path):
-    writeLocalFile(f'{dirCommands}\\command.bat', path)
-    os.system(f'start /min {dirCommands}\\command.bat')
-    app.after(1000, print('ok'))
-    writeLocalFile(f'{dirCommands}\\command.bat', '')
+def connectSSHClient():
+    client = paramiko.SSHClient()
+    client.load_system_host_keys()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    HOSTNAME = '192.168.10.10'
+    USERNAME = 'root'
+    PASSWORD = 'WeatherfordSLS'
+    try:
+        client.connect(hostname=HOSTNAME, username=USERNAME, password=PASSWORD)
+        app.update()
+        return client
+    except Exception as err:
+        return [err]
 
 
 def getWellNumber():
-    path = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command0qw.txt > {dirCommands}log.txt \nexit'
-    startMinCommand(path)
+    client = connectSSHClient()
+    if type(client) == list:
+        messagebox.showerror('Network error', client[0])
+        app.destroy()
+        return
+    with SSHClientInteraction(client, timeout=10, display=True) as interact:
+        interact.send('sh')
+        interact.send('qw')
+        interact.send('exit')
+        interact.send('exit')
+        interact.expect('', timeout=1, lines_to_check=2)
+        cmd_output = interact.current_output
+        writeLocalFile(f'{dirCommands}log.txt', cmd_output)
+    interact.close()
+    client.close()
+
     log = readLocalFile(f'{dirCommands}log.txt')
     if len(log.splitlines()) == 0:
         messagebox.showerror('Network error', 'Please connect to server first')
@@ -130,23 +142,29 @@ def getWellNumber():
                 wellIndex.set(i)
                 wellName.set(splitted[4])
 
+    populate_wells_list()
+    wells_list.selection_set(wellIndex.get())
+    wells_list.yview_scroll(wellIndex.get(), 'units')
+
 
 def populate_wells_list():
     for idx, well in enumerate(listAllWells):
         wells_list.insert(END, f' {well}')
 
 
-def saveStartCommand():
-    pumpsValues = getPumpsValues()
-    command = f'sh\nWWsim -W{wellNumber.get()} {pumpsValues}\nexit\nexit\n'
-    writeLocalFile(resource_path('Commands/command1override.txt'), command)
-
-
 def openOverrideCommand():
-    path = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command1override.txt > {dirCommands}log.txt \nexit'
-    startMinCommand(path)
-    setButtonsDisabled()
-    countSeconds(5000)
+    pumpsValues = getPumpsValues()
+    client = connectSSHClient()
+    interact = SSHClientInteraction(client, timeout=10, display=True)
+    interact.send('sh')
+    interact.send(f'WWsim -W{wellNumber.get()} {pumpsValues}')
+    interact.send('exit')
+    interact.send('exit')
+    interact.expect('', timeout=1, lines_to_check=2)
+    cmd_output = interact.current_output
+    writeLocalFile(f'{dirCommands}log.txt', cmd_output)
+    interact.close()
+    client.close()
 
 
 def startPump():
@@ -169,30 +187,52 @@ def startPump():
             'Error', f'Please Stop DATA-SIM {dataSimValue} first')
         return
 
-    saveStartCommand()
     setButtonsDisabled()
-    # app.after(5000, openOverrideCommand)
-    threading.Timer(5, openOverrideCommand).start()
     startProgressBar()
+    openOverrideCommand()
+    setButtonsNormal()
     print('start pump')
 
 
 def checkDataSim():
-    pathqp = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command2qp.txt > {dirCommands}log.txt \nexit'
-    startMinCommand(pathqp)
+    p.stop()
+    clearFiles()
+    client = connectSSHClient()
+    interact = SSHClientInteraction(client, timeout=10, display=True)
+    interact.send('sh')
+    interact.send('qp')
+    interact.send('exit')
+    interact.send('exit')
+    interact.expect('', timeout=1, lines_to_check=2)
+    cmd_output = interact.current_output
+    writeLocalFile(f'{dirCommands}log.txt', cmd_output)
+    interact.close()
+    client.close()
 
     log = readLocalFile(f'{dirCommands}log.txt')
 
     global dataSim_matched
     dataSim_matched = [line for line in log.split('\n') if "DATA-SIM" in line]
-    countSeconds(5000)
+    setButtonsNormal()
 
 
 def openKillCommand():
-    pathKill = f'{dirPuTTY}plink.exe root@192.168.10.10 -pw WeatherfordSLS < {dirCommands}command3kill.txt > {dirCommands}log.txt \nexit'
-    startMinCommand(pathKill)
-    setButtonsDisabled()
-    countSeconds(5000)
+    startProgressBar()
+    dataSimValue = dataSim_matched[0].split('     ')[1].split(' ')[0]
+
+    client = connectSSHClient()
+    interact = SSHClientInteraction(client, timeout=10, display=True)
+    interact.send('sh')
+    interact.send(f'kill -s2 {dataSimValue}')
+    interact.send('exit')
+    interact.send('exit')
+    interact.expect('', timeout=1, lines_to_check=2)
+    cmd_output = interact.current_output
+    writeLocalFile(f'{dirCommands}log.txt', cmd_output)
+    interact.close()
+    client.close()
+
+    setButtonsNormal()
 
 
 def stopPump():
@@ -202,14 +242,7 @@ def stopPump():
         messagebox.showerror('Error', 'No DATA-SIM started yet')
         return
 
-    dataSimValue = dataSim_matched[0].split('     ')[1].split(' ')[0]
-
-    command = f'sh\nkill -s2 {dataSimValue}\nexit\nexit\n'
-    writeLocalFile(resource_path('Commands/command3kill.txt'), command)
-    setButtonsDisabled()
-    threading.Timer(5, openKillCommand).start()
-    # app.after(5000, openKillCommand)
-    startProgressBar()
+    openKillCommand()
     print('stop pump')
 
 
@@ -224,50 +257,39 @@ def limitInputPump(i, var):
 
 
 def clearFiles():
-    writeLocalFile(resource_path('Commands/command1override.txt'), '')
-    writeLocalFile(resource_path('Commands/command3kill.txt'), '')
     writeLocalFile(resource_path('Commands/log.txt'), '')
 
 
 def stepVa(idx):
-    stepVal = 1 if idx == 5 else 20
+    stepVal = 1 if idx == 3 else 50
     p.step(stepVal)
 
 
 def startProgressBar():
-    for idx, i in enumerate(range(1, 7, 1)):
+    p.stop()
+    for idx, i in enumerate(range(1, 3, 1)):
         threading.Timer(i, lambda id=idx: stepVa(id)).start()
-        # app.after(1000, p.step(stepVal))
         app.update()
 
 
-def cb():
-    waitSec.set(waitSec.get()-1)
-    hideWaitLabel() if waitSec.get() == 0 else showWaitLabel()
-    setButtonsNormal() if waitSec.get() < 1 else setButtonsDisabled()
-    app.update()
-
-
-def countSeconds(sec):
-    seconds = int(sec/1000)
-    waitSec.set(seconds)
-    showWaitLabel()
-    app.update()
-    for i in range(seconds):
-        # app.after(1000, waitSec.set(waitSec.get()-1))
-        threading.Timer(i+1, cb).start()
-
-
 def showWaitLabel():
-    wait_labelText_sec.place(x=405, y=350, width=50, height=25)
     wait_label.place(x=380, y=350, width=25, height=25)
-    wait_labelText.place(x=250, y=350, width=130, height=25)
 
 
 def hideWaitLabel():
-    wait_labelText_sec.place(x=0, y=0, width=0, height=0)
     wait_label.place(x=0, y=0, width=0, height=0)
-    wait_labelText.place(x=0, y=0, width=0, height=0)
+
+
+def setEntryDisabled():
+    pump_one_value_entry.config(state="disabled")
+    pump_two_value_entry.config(state="disabled")
+    pump_thr_value_entry.config(state="disabled")
+
+
+def setButtonsDisabled():
+    start_pump_btn.config(state='disabled')
+    stop_pump_btn.config(state='disabled')
+    openPuTTY_btn.config(state='disabled')
 
 
 def setButtonsNormal():
@@ -365,12 +387,6 @@ p.place(x=200, y=385, width=300, height=15)
 wait_label = Label(app, textvariable=waitSec,
                    background='#5B7DB1', font=('Arial', 15, 'bold'), pady=20, padx=20, width=5)
 
-wait_labelText = Label(app, text='Please Wait',
-                       background='#5B7DB1', font=('Arial', 15, 'bold'), pady=20, padx=20, width=5)
-wait_labelText_sec = Label(app, text='Sec',
-                           background='#5B7DB1', font=('Arial', 15, 'bold'), pady=20, padx=20, width=5)
-showWaitLabel()
-
 madeWithLoveBy = Label(
     app, text='Made with ❤ by Mohamed Omar', background='#10b6a8', foreground='#000000',
     font=('monospace', 9, 'bold'))
@@ -400,23 +416,6 @@ p1 = PhotoImage(file=resource_path('pump_icon.png'))
 app.iconphoto(False, p1)
 
 getWellNumber()
-populate_wells_list()
-wells_list.selection_set(wellIndex.get())
-wells_list.yview_scroll(wellIndex.get(), 'units')
-
-setEntryDisabled()
-setButtonsDisabled()
-
-
-def closeApp():
-    app.destroy()
-    return
-
-
-if wellNumber.get() == '0':
-    closeApp()
-else:
-    countSeconds(5000)
 
 # Start program
 app.mainloop()

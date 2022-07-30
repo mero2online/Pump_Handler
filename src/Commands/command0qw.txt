@@ -1,5 +1,0 @@
-y
-sh
-qw
-exit
-exit
